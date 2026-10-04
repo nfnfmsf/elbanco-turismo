@@ -42,6 +42,8 @@ const S=[
 ['Navidad con música','Christmas with music','Las novenas se llenan de música, y "Navidad negra" de José Barros suena en todo el pueblo.','Novenas fill with music, and José Barros\'s "Navidad negra" plays all over town.',9.0006,-73.9738,'IMG_NAVIDAD']]}]}];
 Object.assign(T.es,{back:'Volver',go:'Explorar',pin:'Ver en el mapa'});
 Object.assign(T.en,{back:'Back',go:'Explore',pin:'Show on map'});
+Object.assign(T.es,{h:'Aquí el río se oye, se come y se baila.',p:'Cumbia, pescado fresco y atardeceres sobre el Magdalena. Esto es El Banco, contado por alguien que vive aquí.',k:'El Banco, Magdalena'});
+Object.assign(T.en,{h:'Here the river is heard, tasted and danced.',p:'Cumbia, fresh fish and sunsets over the Magdalena. This is El Banco, told by someone who lives here.',k:'El Banco, Magdalena'});
 const COL={cultura:'#C2185B',naturaleza:'#1B7F4B',gastronomia:'#D9620F',eventos:'#1F5FBF'};
 const $=s=>document.querySelector(s),B=document.body.dataset;
 let lang=localStorage.getItem('lang')||'es',map;
@@ -64,15 +66,15 @@ if(here!=='home'){const c=[`<a href="index.html">${t('home')}</a>`];
 if(sec){c.push(sub?`<a href="${url(sec)}">${sec.t[i()]}</a>`:`<span>${sec.t[i()]}</span>`);if(sub)c.push(`<span>${sub.t[i()]}</span>`)}else c.push(`<span>${t('cr')}</span>`);
 crumbs=`<div class="crumbs"><a class="back" href="${sub?url(sec):'index.html'}">← ${t('back')}</a>${c.join('<i>/</i>')}</div>`}
 let h='',items=S.flatMap(s=>s.subs.flatMap(u=>u.x));
-if(here==='home'){h=`<header class="hero" style="--bg:url(img/IMG_HERO.jpg)"><div><h1>${t('h')}</h1><p>${t('p')}</p><a class="btn" href="#sec">${t('go')}</a></div></header><main id="sec"><h2>${t('sec')}</h2><div class="tiles">${S.map(s=>tile(url(s),COL[s.id],s.subs[0].x[0][6],s.t[i()],s.subs.map(u=>u.t[i()]).join(' · '))).join('')}</div><h2>${t('map')}</h2><div id="map"></div></main>`}
+if(here==='home'){h=`<header class="hero" style="--bg:url(img/IMG_HERO.jpg)"><div><span class="k">${t('k')}</span><h1>${t('h')}</h1><p>${t('p')}</p><a class="btn" href="#sec">${t('go')}</a></div></header><main id="sec"><h2>${t('sec')}</h2><div class="tiles">${S.map(s=>tile(url(s),COL[s.id],s.subs[0].x[0][6],s.t[i()],s.subs.map(u=>u.t[i()]).join(' · '))).join('')}</div><h2>${t('map')}</h2><div id="map"></div></main>`}
 else if(here==='cr'){h=crumbs+`<main class="cr"><h1>${t('crt')}</h1><p>${t('cri')}</p><h2>${t('crc')}</h2><ul>
 <li>Agafonkin, V. (2023). <i>Leaflet</i> (Version 1.9.4) [Software]. https://leafletjs.com</li>
 <li>OpenStreetMap contributors. (n.d.). <i>OpenStreetMap</i>. https://www.openstreetmap.org/copyright</li>
-<li>Google. (n.d.). <i>Google Fonts: Bricolage Grotesque, DM Sans</i>. https://fonts.google.com</li></ul>
+<li>Google. (n.d.). <i>Google Fonts: DM Serif Display, DM Sans</i>. https://fonts.google.com</li></ul>
 <h2>${t('cra')}</h2><p>${t('crai')}</p><ul><li>Anthropic. (2026). <i>Claude</i> [Large language model]. https://claude.ai</li></ul>
 <h2>${t('crp')}</h2><ul><li>Aguilar Castaño, N. A. (2026). <i>Atardecer sobre el río Magdalena</i> [Fotografía]. Archivo personal.</li><li>Apellido, N. (Año). <i>Título de la imagen</i> [Fotografía]. Sitio. URL</li></ul></main>`}
-else if(sub){h=crumbs+`<header class="band"><h1>${sub.t[i()]}</h1><p>${sec.t[i()]}</p></header><main><div class="split"><div class="list">${sub.x.map(card).join('')}</div><div class="side"><div id="map"></div></div></div></main>`}
-else{items=sec.subs.flatMap(u=>u.x);h=crumbs+`<header class="band"><h1>${sec.t[i()]}</h1></header><main><h2>${t('sub')}</h2><div class="tiles">${sec.subs.map((u,n)=>tile(url(sec,n+1),COL[sec.id],u.x[0][6],u.t[i()],u.x.map(e=>e[i()]).join(' · '))).join('')}</div><h2>${t('all')}</h2><div id="map"></div></main>`}
+else if(sub){h=crumbs+`<header class="band" style="--im:url(img/${sub.x[0][6]}.jpg)"><h1>${sub.t[i()]}</h1><p>${sec.t[i()]}</p></header><main><div class="split"><div class="list">${sub.x.map(card).join('')}</div><div class="side"><div id="map"></div></div></div></main>`}
+else{items=sec.subs.flatMap(u=>u.x);h=crumbs+`<header class="band" style="--im:url(img/${sec.subs[0].x[0][6]}.jpg)"><h1>${sec.t[i()]}</h1></header><main><h2>${t('sub')}</h2><div class="tiles">${sec.subs.map((u,n)=>tile(url(sec,n+1),COL[sec.id],u.x[0][6],u.t[i()],u.x.map(e=>e[i()]).join(' · '))).join('')}</div><h2>${t('all')}</h2><div id="map"></div></main>`}
 $('#app').innerHTML=h+`<footer>${t('foot')}</footer>`;
 if($('#map')){drawMap(sub?sub.x:items);
 document.querySelectorAll('.exp').forEach(c=>{const n=+c.dataset.n,go=()=>{if(innerWidth<860)$('#map').scrollIntoView({behavior:'smooth',block:'center'});map.flyTo([sub.x[n][4],sub.x[n][5]],16);map.mk[n].openPopup()};c.querySelector('.pin').onclick=go})}}
