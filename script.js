@@ -40,6 +40,9 @@ const S=[
 ['Fiestas patronales','Patron saint festivities','Misas, procesiones y verbena popular. El barrio entero sale a la calle.','Masses, processions and street parties. The whole neighborhood comes out.',8.9988,-73.9758,'IMG_PATRONALES'],
 ['Mercado y ferias locales','Local market and fairs','Frutas, pescado y artesanías directo de quien las produce. Llega temprano.','Fruit, fish and crafts straight from the people who make them. Arrive early.',8.9978,-73.9748,'IMG_MERCADO'],
 ['Navidad con música','Christmas with music','Las novenas se llenan de música, y "Navidad negra" de José Barros suena en todo el pueblo.','Novenas fill with music, and José Barros\'s "Navidad negra" plays all over town.',9.0006,-73.9738,'IMG_NAVIDAD']]}]}];
+Object.assign(T.es,{back:'Volver',go:'Explorar',pin:'Ver en el mapa'});
+Object.assign(T.en,{back:'Back',go:'Explore',pin:'Show on map'});
+const COL={cultura:'#C2185B',naturaleza:'#1B7F4B',gastronomia:'#D9620F',eventos:'#1F5FBF'};
 const $=s=>document.querySelector(s),B=document.body.dataset;
 let lang=localStorage.getItem('lang')||'es',map;
 const i=()=>lang==='es'?0:1,t=k=>T[lang][k];
@@ -50,23 +53,27 @@ function drawMap(items){if(map)map.remove();map=L.map('map').setView([9.0,-73.97
 L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'}).addTo(map);
 map.mk=items.map(e=>L.marker([e[4],e[5]]).addTo(map).bindPopup('<b>'+e[i()]+'</b>'));
 map.fitBounds(items.map(e=>[e[4],e[5]]),{padding:[40,40],maxZoom:15});}
-const mapBox=h=>`<h2>${h}</h2><div id="map" role="region" aria-label="${h}"></div>`;
-const card=e=>`<article class="card exp" tabindex="0" data-k="${e[6]}">${img(e[6])}<div class="t"><h3>${e[i()]}</h3><p>${e[i()+2]}</p></div></article>`;
-function render(){document.documentElement.lang=lang;
-const here=B.page;
-$('#nav').innerHTML=`<b>El Banco</b><a href="index.html" class="${here==='home'?'on':''}">${t('home')}</a>`+S.map(s=>`<a href="${url(s)}" class="${here===s.id?'on':''}">${s.t[i()]}</a>`).join('')+`<a href="creditos.html" class="${here==='cr'?'on':''}">${t('cr')}</a><button id="lang" aria-label="Language">${t('l')}</button>`;
-$('#lang').onclick=()=>{lang=lang==='es'?'en':'es';localStorage.setItem('lang',lang);render()};
+const tile=(href,c,k,h,p)=>`<a class="tile" href="${href}" style="--c:${c};--im:url(img/${k}.jpg)"><h3>${h}</h3><p>${p}</p></a>`;
+const card=(e,n)=>`<article class="exp" data-n="${n}">${img(e[6])}<div class="t"><h3>${e[i()]}</h3><p>${e[i()+2]}</p><button class="pin">${t('pin')}</button></div></article>`;
+function render(){document.documentElement.lang=lang;const here=B.page,es=lang==='es';
+document.body.style.setProperty('--c',COL[here]||'#0E5A5F');
+$('#nav').innerHTML=`<b>El Banco</b><a href="index.html" class="${here==='home'?'on':''}">${t('home')}</a>`+S.map(s=>`<a href="${url(s)}" class="${here===s.id?'on':''}">${s.t[i()]}</a>`).join('')+`<a href="creditos.html" class="${here==='cr'?'on':''}">${t('cr')}</a><button id="lang" aria-label="Español / English"><span class="${es?'on':''}">ES</span><span class="${es?'':'on'}">EN</span></button>`;
+$('#lang').onclick=()=>{lang=es?'en':'es';localStorage.setItem('lang',lang);render()};
+let crumbs='';
+if(here!=='home'){const c=[`<a href="index.html">${t('home')}</a>`];
+if(sec){c.push(sub?`<a href="${url(sec)}">${sec.t[i()]}</a>`:`<span>${sec.t[i()]}</span>`);if(sub)c.push(`<span>${sub.t[i()]}</span>`)}else c.push(`<span>${t('cr')}</span>`);
+crumbs=`<div class="crumbs"><a class="back" href="${sub?url(sec):'index.html'}">← ${t('back')}</a>${c.join('<i>/</i>')}</div>`}
 let h='',items=S.flatMap(s=>s.subs.flatMap(u=>u.x));
-if(here==='home'){h=`<header class="hero"><h1>${t('h')}</h1><p>${t('p')}</p></header><main><h2>${t('sec')}</h2><div class="grid">${S.map(s=>`<a class="card link" href="${url(s)}"><div class="t"><h3>${s.t[i()]}</h3><p>${s.subs.map(u=>u.t[i()]).join(' · ')}</p></div></a>`).join('')}</div>${mapBox(t('map'))}</main>`}
-else if(here==='cr'){h=`<main class="cr"><h1>${t('crt')}</h1><p>${t('cri')}</p><h2>${t('crc')}</h2><ul>
+if(here==='home'){h=`<header class="hero" style="--bg:url(img/IMG_HERO.jpg)"><div><h1>${t('h')}</h1><p>${t('p')}</p><a class="btn" href="#sec">${t('go')}</a></div></header><main id="sec"><h2>${t('sec')}</h2><div class="tiles">${S.map(s=>tile(url(s),COL[s.id],s.subs[0].x[0][6],s.t[i()],s.subs.map(u=>u.t[i()]).join(' · '))).join('')}</div><h2>${t('map')}</h2><div id="map"></div></main>`}
+else if(here==='cr'){h=crumbs+`<main class="cr"><h1>${t('crt')}</h1><p>${t('cri')}</p><h2>${t('crc')}</h2><ul>
 <li>Agafonkin, V. (2023). <i>Leaflet</i> (Version 1.9.4) [Software]. https://leafletjs.com</li>
 <li>OpenStreetMap contributors. (n.d.). <i>OpenStreetMap</i>. https://www.openstreetmap.org/copyright</li>
-<li>Google. (n.d.). <i>Google Fonts: Archivo, Source Serif 4</i>. https://fonts.google.com</li></ul>
+<li>Google. (n.d.). <i>Google Fonts: Bricolage Grotesque, DM Sans</i>. https://fonts.google.com</li></ul>
 <h2>${t('cra')}</h2><p>${t('crai')}</p><ul><li>Anthropic. (2026). <i>Claude</i> [Large language model]. https://claude.ai</li></ul>
 <h2>${t('crp')}</h2><ul><li>Aguilar Castaño, N. A. (2026). <i>Atardecer sobre el río Magdalena</i> [Fotografía]. Archivo personal.</li><li>Apellido, N. (Año). <i>Título de la imagen</i> [Fotografía]. Sitio. URL</li></ul></main>`}
-else if(sub){h=`<main><h1>${sec.t[i()]} · ${sub.t[i()]}</h1><h2>${t('exp')}</h2><div class="grid">${sub.x.map(card).join('')}</div>${mapBox(t('map'))}</main>`}
-else{h=`<header class="hero"><h1>${sec.t[i()]}</h1></header><main><h2>${t('sub')}</h2><div class="grid">${sec.subs.map((u,n)=>`<a class="card link" href="${url(sec,n+1)}"><div class="t"><h3>${u.t[i()]}</h3><p>${u.x.map(e=>e[i()]).join(' · ')}</p><p><b>${t('view')}</b></p></div></a>`).join('')}</div>${mapBox(t('all')+' · '+sec.t[i()])}</main>`;items=sec.subs.flatMap(u=>u.x)}
+else if(sub){h=crumbs+`<header class="band"><h1>${sub.t[i()]}</h1><p>${sec.t[i()]}</p></header><main><div class="split"><div class="list">${sub.x.map(card).join('')}</div><div class="side"><div id="map"></div></div></div></main>`}
+else{items=sec.subs.flatMap(u=>u.x);h=crumbs+`<header class="band"><h1>${sec.t[i()]}</h1></header><main><h2>${t('sub')}</h2><div class="tiles">${sec.subs.map((u,n)=>tile(url(sec,n+1),COL[sec.id],u.x[0][6],u.t[i()],u.x.map(e=>e[i()]).join(' · '))).join('')}</div><h2>${t('all')}</h2><div id="map"></div></main>`}
 $('#app').innerHTML=h+`<footer>${t('foot')}</footer>`;
 if($('#map')){drawMap(sub?sub.x:items);
-document.querySelectorAll('.exp').forEach((c,n)=>{const go=()=>{map.flyTo([sub.x[n][4],sub.x[n][5]],16);map.mk[n].openPopup()};c.onclick=go;c.onkeydown=e=>e.key==='Enter'&&go()})}}
+document.querySelectorAll('.exp').forEach(c=>{const n=+c.dataset.n,go=()=>{if(innerWidth<860)$('#map').scrollIntoView({behavior:'smooth',block:'center'});map.flyTo([sub.x[n][4],sub.x[n][5]],16);map.mk[n].openPopup()};c.querySelector('.pin').onclick=go})}}
 render();
