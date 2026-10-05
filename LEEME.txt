@@ -1,0 +1,5 @@
+EL BANCO TOURISM ROUTES - Fase 2
+
+1_sitio_para_GitHub  -> todo el contenido va al repositorio de GitHub (las fotos dentro de la carpeta img).
+
+Antes de subir al repositorio, borra de la raiz los archivos sueltos IMG_*.jpg que subiste antes.

@@ -50,13 +50,22 @@ let lang=localStorage.getItem('lang')||'es',map;
 const i=()=>lang==='es'?0:1,t=k=>T[lang][k];
 const sec=S.find(s=>s.id===B.page),sub=sec&&B.sub?sec.subs[B.sub-1]:null;
 const url=(s,n)=>n?`${s.id}-${n}.html`:`${s.id}.html`;
-const img=k=>`<img src="img/${k}.jpg" alt="${k}" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'ph',textContent:'[${k}]'}))">`;
-function drawMap(items){if(map)map.remove();map=L.map('map').setView([9.0,-73.975],13);
+const img=(k,a='')=>`<img src="img/${k}.jpg" alt="${a}" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'ph',textContent:'[${k}]'}))">`;
+function drawMap(groups){if(map)map.remove();map=L.map('map',{scrollWheelZoom:false}).setView([9.0,-73.975],13);
 L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'}).addTo(map);
-map.mk=items.map(e=>L.marker([e[4],e[5]]).addTo(map).bindPopup('<b>'+e[i()]+'</b>'));
-map.fitBounds(items.map(e=>[e[4],e[5]]),{padding:[40,40],maxZoom:15});}
+map.mk=[];const all=[];
+groups.forEach(g=>{const pts=g.x.map(e=>[e[4],e[5]]);all.push(...pts);
+L.polyline(pts,{color:g.c,weight:4,opacity:.85,dashArray:'8 8'}).addTo(map);
+g.x.forEach((e,n)=>map.mk.push(L.marker(pts[n],{icon:L.divIcon({className:'',html:`<div class="num" style="background:${g.c}">${n+1}</div>`,iconSize:[30,30],iconAnchor:[15,15]})}).addTo(map).bindPopup('<b>'+e[i()]+'</b>')))});
+map.fitBounds(all,{padding:[40,40],maxZoom:15});}
 const tile=(href,c,k,h,p)=>`<a class="tile" href="${href}" style="--c:${c};--im:url(img/${k}.jpg)"><h3>${h}</h3><p>${p}</p></a>`;
-const card=(e,n)=>`<article class="exp" data-n="${n}">${img(e[6])}<div class="t"><h3>${e[i()]}</h3><p>${e[i()+2]}</p><button class="pin">${t('pin')}</button></div></article>`;
+const card=(e,n)=>`<article class="exp" data-n="${n}">${img(e[6],e[i()])}<span class="n">${n+1}</span><div class="t"><h3>${e[i()]}</h3><p>${e[i()+2]}</p><button class="pin">${t('pin')}</button></div></article>`;
+Object.assign(T.es,{cri:'Todas las imágenes de este sitio fueron generadas con Gemini (Google) a partir de descripciones escritas por el autor. Son imágenes generadas por IA, no fotografías tomadas en el lugar.',crp:'Imágenes generadas por IA'});
+Object.assign(T.en,{cri:'All images on this site were generated with Gemini (Google) from descriptions written by the author. They are AI-generated images, not photographs taken on location.',crp:'AI-generated images'});
+const credits=()=>[['Atardecer sobre el río Magdalena (portada)','Sunset over the Magdalena River (cover)'],...S.flatMap(s=>s.subs.flatMap(u=>u.x))].map(e=>`<li>Google. (2026). <i>${e[i()]}</i> [${lang==='es'?'Imagen generada por IA':'AI-generated image'}]. Gemini. <a href="https://gemini.google.com">https://gemini.google.com</a></li>`).join('');
+const rm=matchMedia('(prefers-reduced-motion:reduce)').matches;
+function reveal(){if(rm||!('IntersectionObserver' in window))return;const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.12});
+document.querySelectorAll('.tile,.exp,main h2').forEach((el,n)=>{el.classList.add('rv');el.style.animationDelay=(n%3)*90+'ms';io.observe(el)})}
 function render(){document.documentElement.lang=lang;const here=B.page,es=lang==='es';
 document.body.style.setProperty('--c',COL[here]||'#0E5A5F');
 $('#nav').innerHTML=`<b>El Banco</b><a href="index.html" class="${here==='home'?'on':''}">${t('home')}</a>`+S.map(s=>`<a href="${url(s)}" class="${here===s.id?'on':''}">${s.t[i()]}</a>`).join('')+`<a href="creditos.html" class="${here==='cr'?'on':''}">${t('cr')}</a><button id="lang" aria-label="Español / English"><span class="${es?'on':''}">ES</span><span class="${es?'':'on'}">EN</span></button>`;
@@ -72,10 +81,10 @@ else if(here==='cr'){h=crumbs+`<main class="cr"><h1>${t('crt')}</h1><p>${t('cri'
 <li>OpenStreetMap contributors. (n.d.). <i>OpenStreetMap</i>. https://www.openstreetmap.org/copyright</li>
 <li>Google. (n.d.). <i>Google Fonts: DM Serif Display, DM Sans</i>. https://fonts.google.com</li></ul>
 <h2>${t('cra')}</h2><p>${t('crai')}</p><ul><li>Anthropic. (2026). <i>Claude</i> [Large language model]. https://claude.ai</li></ul>
-<h2>${t('crp')}</h2><ul><li>Aguilar Castaño, N. A. (2026). <i>Atardecer sobre el río Magdalena</i> [Fotografía]. Archivo personal.</li><li>Apellido, N. (Año). <i>Título de la imagen</i> [Fotografía]. Sitio. URL</li></ul></main>`}
+<h2>${t('crp')}</h2><ul>${credits()}</ul></main>`}
 else if(sub){h=crumbs+`<header class="band" style="--im:url(img/${sub.x[0][6]}.jpg)"><h1>${sub.t[i()]}</h1><p>${sec.t[i()]}</p></header><main><div class="split"><div class="list">${sub.x.map(card).join('')}</div><div class="side"><div id="map"></div></div></div></main>`}
 else{items=sec.subs.flatMap(u=>u.x);h=crumbs+`<header class="band" style="--im:url(img/${sec.subs[0].x[0][6]}.jpg)"><h1>${sec.t[i()]}</h1></header><main><h2>${t('sub')}</h2><div class="tiles">${sec.subs.map((u,n)=>tile(url(sec,n+1),COL[sec.id],u.x[0][6],u.t[i()],u.x.map(e=>e[i()]).join(' · '))).join('')}</div><h2>${t('all')}</h2><div id="map"></div></main>`}
-$('#app').innerHTML=h+`<footer>${t('foot')}</footer>`;
-if($('#map')){drawMap(sub?sub.x:items);
+$('#app').innerHTML=h+`<footer><a href="creditos.html">${t('cr')}</a> · ${t('foot')} · <a href="#" aria-label="Arriba">↑</a></footer>`;document.title=(sub?sub.t[i()]+' · ':sec?sec.t[i()]+' · ':here==='cr'?t('cr')+' · ':'')+'El Banco, Magdalena';if(!rm)$('#app').animate([{opacity:0},{opacity:1}],{duration:380});reveal();
+if($('#map')){drawMap(sub?[{c:COL[sec.id],x:sub.x}]:sec?sec.subs.map(u=>({c:COL[sec.id],x:u.x})):S.flatMap(s=>s.subs.map(u=>({c:COL[s.id],x:u.x}))));
 document.querySelectorAll('.exp').forEach(c=>{const n=+c.dataset.n,go=()=>{if(innerWidth<860)$('#map').scrollIntoView({behavior:'smooth',block:'center'});map.flyTo([sub.x[n][4],sub.x[n][5]],16);map.mk[n].openPopup()};c.querySelector('.pin').onclick=go})}}
 render();
